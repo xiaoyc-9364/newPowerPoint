@@ -1,0 +1,92 @@
+
+.wrapper{
+	width: 80%;
+	height: 500px;
+	margin: 0 auto;
+	border: 1px solid #000;
+	position: relative;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.imgmain{
+	width: 60%;
+	/*position: absolute;*/
+	/*left: 50%;*/
+	/*transform: translateX(-50%);*/
+	/*bottom: 40px;*/
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	
+}
+.imgmain img {
+	width: 100px;
+	border-radius: 6px;
+	cursor: pointer;
+	border: 4px solid transparent;
+	transition: all 0.5s;
+}
+.imgmain img:hover {
+	border-color: #075fb9;
+}
+/*js添加的class元素的样式*/
+.screen {
+	width: 100%;
+	height: 100%;
+	background: #000;
+	opacity: 0.5;
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 998;
+	color: #fff;
+}
+.frame {
+	max-height: 80%;
+	max-width: 90%;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	color: #fff;
+	transform: translate(-50%,-50%);
+	z-index: 999;
+	background-color: #fff;
+	padding: 5px;
+	border-radius: 5px;
+}
+.frame img{
+	width: 100%;
+	/*height: 100%;*/
+	border-radius: 5px;
+	user-select: none;
+}
+.close{
+	font-size: 75px;
+	border: none;
+	text-shadow: 0 0 3px #fff;
+	background: none;
+	position: absolute;
+	right: 0;
+	bottom: -75px;
+	cursor: pointer;
+	user-select: none;
+}
+.message {
+	line-height: 14px;
+	font-size: 16px;
+	position: absolute;
+	left: 0;
+	bottom: -30px;
+}
+.pagenum {
+	line-height: 14px;
+	font-size: 16px;
+	position: absolute;
+	left: 0;
+	bottom: -50px;
+}
