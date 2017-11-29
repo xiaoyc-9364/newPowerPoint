@@ -1,10 +1,9 @@
 window.addEventListener('load', function() {
 	addImgSlide();
-	
-
-
-}, false); 
-
+	window.addEventListener('resize', function() {
+			frame.resize(document.body.offsetWidth, document.body.offsetHeight);
+		}, false); 
+}, false);
 function addImgSlide() {
 	var aImg = document.getElementsByTagName('img');	//获取页面中所有img
 	var len = aImg.length;
@@ -20,8 +19,8 @@ function addImgSlide() {
 			}
 		}
 	}
-	var frame = new PowerPoint(json);
-	document.addEventListener('resize', function() {
+	return frame = new PowerPoint(json);
+	window.addEventListener('resize', function() {
 		frame.resize(document.body.offsetWidth, document.body.offsetHeight);
 	}, false);
 }
@@ -53,13 +52,13 @@ PowerPoint.prototype.addEvent = function() {
 									_this.frameClose();	
 									break;
 								case 37: 				//左方向键上一张
-									_this.move(k, --i);
+									_this.tabImg(k, --i);
 									if (i <= 0) {		
 										i = 0;
 									}
 									break;
 								case 39: 				//有方向键下一张
-									_this.move(k, ++i);
+									_this.tabImg(k, ++i);
 									if (i >= len - 1) {
 										i = len - 1;
 									}
@@ -68,30 +67,36 @@ PowerPoint.prototype.addEvent = function() {
 						},false);
 
 						_this.oPrev.addEventListener('click', function() {	//上一张
-							_this.move(k, --i);
-							if (i < 0) {
+							_this.tabImg(k, --i);
+							if (i <= 0) {
 								i = 0;
 							}
 						}, false);
 
 						_this.oNext.addEventListener('click', function() {	//下一张
-							_this.move(k, ++i);
-							if (i > len - 1) {
+							_this.tabImg(k, ++i);
+							if (i >= len - 1) {
 								i = len - 1;
 							}
 						}, false);
 
 						document.addEventListener('click', function(event) {
-							var oPrevWidth = _this.oPrev.offsetWidth,
-								oFrameHeight = _this.oFrame.offsetHeight,
-								oFrameWidth = _this.oFrame.offsetWidth,
-								oFrameLeft = _this.oFrame.offsetLeft- oFrameWidth / 2,
-								oFrameRight = oFrameLeft + oFrameWidth;
-								oFrameTop = _this.oFrame.offsetTop - oFrameHeight / 2;
-							if (event.clientX < oFrameLeft || event.clientX > oFrameRight || event.clientY < oFrameTop || event.clientY > (oFrameTop + oFrameHeight)) {
-								// if(_this.oFrame){
-								// 	_this.frameClose();
-								// }
+							// var oFrameHeight = _this.oFrame.offsetHeight,
+							// 	oFrameWidth = _this.oFrame.offsetWidth,
+							// 	oFrameLeft = _this.oFrame.offsetLeft- oFrameWidth / 2,
+							// 	oFrameRight = oFrameLeft + oFrameWidth;
+							// 	oFrameTop = _this.oFrame.offsetTop - oFrameHeight / 2;
+
+							// if (event.clientX < oFrameLeft || event.clientX > oFrameRight 
+							// 	|| event.clientY < oFrameTop || event.clientY > (oFrameTop + oFrameHeight)) {
+							// 	// if(_this.oFrame){
+							// 		_this.frameClose();
+							// 	// }
+							// }
+							var target = event.target;
+							var targetName = target.nodeName.toLowerCase()
+							if (targetName != 'img' && targetName != 'p' && targetName != 'button') {
+								_this.frameClose();
 							}
 							
 						}, false);
@@ -117,14 +122,14 @@ PowerPoint.prototype.createFrame = function(obj) {	//创建图片详情方法
 	this.oFrame.setAttribute('class', 'frame');
 
 	this.oPrev = document.createElement('button');	//创建上一张及下一张按钮
-	this.oPrev.setAttribute('class', 'prev');
+	this.oPrev.setAttribute('class', 'ctrl_btn prev');
 	this.oPrev.innerHTML = '<';	
 
 	this.oNext = document.createElement('button');
-	this.oNext.setAttribute('class', 'next');
+	this.oNext.setAttribute('class', 'ctrl_btn next');
 	this.oNext.innerHTML = '>';	
 
-	this.oClose = document.createElement('a');		//创建关闭按钮
+	this.oClose = document.createElement('button');		//创建关闭按钮
 	this.oClose.setAttribute('class', 'close');
 	this.oClose.innerHTML = '×';
 
@@ -147,11 +152,15 @@ PowerPoint.prototype.createFrame = function(obj) {	//创建图片详情方法
 
 	document.body.appendChild(this.oFrame);			//将显示框添加到body
 	document.body.appendChild(this.oScreen);		//屏幕遮罩添加到body
+
+	document.body.style.overflow = 'hidden';
+
 };
 
 PowerPoint.prototype.frameClose = function() {		//关闭详情图片
 	document.body.removeChild(this.oFrame);
 	document.body.removeChild(this.oScreen);
+	document.body.style.overflow = 'auto';
 };
 
 PowerPoint.prototype.addDescription = function(str, index, len) {
@@ -165,24 +174,40 @@ PowerPoint.prototype.resize = function(newWith, newHeight) {
 	this.oFrame.style.maxWidth = newWith * 0.9 + 'px';
 	this.oFrame.style.maxHeight = newHeight * 0.9 + 'px';
 }
-PowerPoint.prototype.move = function(property, index) {
+PowerPoint.prototype.tabImg = function(property, index) {
 	var len = this.opts[property].length;
-	if ( index < 0) {	//判断是否为第一张
+	var timer = null;
+	if ( index <= 0) {	//判断是否为第一张
 		index = 0;
 		this.oPrev.style.display = 'none';	//隐藏上一张按钮
 	} else if (index > 0 && index < len - 1) {
 		this.oNext.style.display = 'block';
 		this.oPrev.style.display = 'block';
-	} else if (index > (len - 1)) {
+	} else if (index >= (len - 1)) {
 		index = len - 1;
 		this.oNext.style.display = 'none'; //隐藏下一张按钮
 	}
 	var oldImg = this.oFrame.getElementsByTagName('img')[0];	//获取到详图中的唯一一张照片
+	var _this = this;
+	
+	this.oFrame.style.width = oldImg.offsetWidth + 'px';		
+	this.oFrame.style.height = oldImg.offsetHeight + 'px';
+
 	this.oFrame.removeChild(oldImg);							//从详图中移除
 
-	var curImg = this.opts[property][index].cloneNode(true);	//复制需要显示是图片
-	this.oFrame.appendChild(curImg);							//添加到详图中
-
+	var curImg = _this.opts[property][index].cloneNode(true);	//复制需要显示是图片
 	var imgMessage = curImg.getAttribute('alt');				//更新图片描述及页码
-	this.addDescription(imgMessage, index + 1, len)
+	_this.addDescription(imgMessage, index + 1, len);
+
+	clearTimeout(timer);
+	timer = setTimeout(function() {		//延时加载新图片
+		_this.oFrame.appendChild(curImg);							//添加到详图中
+		_this.oFrame.style.width = curImg.style.width;				//更新详图的宽高
+		_this.oFrame.style.height = curImg.style.height;
+	}, 300);
+};
+
+PowerPoint.prototype.frameResize = function (newWidth, newHeight) {
+	this.oFrame.width = newWidth + 'px';
+	this.oFrame.height = newHeight + 'px';
 }
