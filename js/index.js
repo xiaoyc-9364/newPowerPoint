@@ -39,7 +39,11 @@ PowerPoint.prototype.createFrame = function() {	//创建图片详情方法
 	this.oFrame = document.createElement('div');	//创建显示框
 	this.oFrame.setAttribute('class', 'frame_detail');
 
-	this.oImg = document.createElement('img');	
+	this.oEmpty = document.createElement('div');	//创建一个空元素，用于撑起frame高度
+	this.oEmpty.setAttribute('class', 'frame_empty');
+	this.oFrame.appendChild(this.oEmpty);
+
+	this.oImg = new Image();	
 	this.oImg.setAttribute('class', 'frame_img');
 	this.oFrame.appendChild(this.oImg);
 
@@ -85,6 +89,7 @@ PowerPoint.prototype.addEvent = function() {
 				}
 		})(k);
 	}
+
 	document.addEventListener('keydown', function(event) {	
 		switch(event.keyCode) {		//按下键盘Esc键，关闭详图
 			case 27:
@@ -122,68 +127,90 @@ PowerPoint.prototype.loadImg = function(property, index) {  //加载图片
 	this.key = property;
 	this.cur = index;
 	var len = this.options[property].length;
-
-	this.cur = Math.max(0, Math.min(this.cur, len-1));
-	var imgSrc = this.options[this.key][this.cur].getAttribute('src');
-	var imgAlt = this.options[this.key][this.cur].getAttribute('alt');
-	
-	this.oImg.setAttribute('src', imgSrc);
-	this.imgMessage.innerHTML = imgAlt;						//图片信息添加内容
-	this.pageNum.innerHTML = (this.cur + 1) + " / " +  len;			//页码
-	
-
-	var imgW = this.oImg.offsetWidth,
-		imgH = this.oImg.offsetHeight,
-		pageW = window.innerWidth,
-		pageH = window.innerHeight;
-	// if (imgW >= pageW && imgH <= pageH) {
-	// 	this.oImg.style.width = pageW + 'px';
-	// } else if (imgW <= pageW && imgH >= pageH) {
-	// 	this.oImg.style.height = pageH + 'px';
-	// } else if (imgW >= pageW && imgH >= pageH) {
-	// 	var scaleW = imgW / pageW,
-	// 		scaleH = imgH / pageH;
-	// 	if (scaleW > scaleH) {
-	// 		this.oImg.style.height = pageH + 'px';
-	// 	} else {
-	// 		this.oImg.style.width = pageW + 'px';
-	// 	}
-	// }
-	
-
-
-};
-
-PowerPoint.prototype.tabImg = function(n) {		//切换图片
-	var len = this.options[this.key].length;
-	var timer = null;
-	this.loadImg(this.key, this.cur + n);
-
 	if ( this.cur <= 0) {	//判断是否为第一张
-		this.oPrev.classList.add('hide_btn');	//隐藏上一张按钮
-	} else if (this.cur >= (len - 1)) {
-		this.oNext.classList.add('hide_btn'); //隐藏下一张按钮
+		this.cur = 0;	
+		this.oPrev.classList.add('hide_btn');	 	//隐藏上一张按钮
+		this.oNext.classList.remove('hide_btn'); 	//显示下一张按钮
+	} else if (this.cur >= len - 1) {
+		this.cur = len - 1;
+		this.oPrev.classList.remove('hide_btn');	//显示上一张按钮
+		this.oNext.classList.add('hide_btn');   	//隐藏下一张按钮
 	} else {
 		this.oPrev.classList.remove('hide_btn');
 		this.oNext.classList.remove('hide_btn');
 	}
+
+	var imgSrc = this.options[this.key][this.cur].getAttribute('src');
+	var imgAlt = this.options[this.key][this.cur].getAttribute('alt');
+
+	this.oImg.setAttribute('src', imgSrc);
+	this.imgMessage.innerHTML = imgAlt;						//图片信息添加内容
+	this.pageNum.innerHTML = (this.cur + 1) + " / " +  len;			//页码
+	var _this =  this;
+
+	this.oImg.addEventListener('load', function() {}, false);
+	var imgW = this.oImg.offsetWidth,
+		imgH = this.oImg.offsetHeight;
+	this.oEmpty.style.width = imgW + 'px';
+	this.oEmpty.style.height = imgH + 'px';
+
+	this.oImg.setAttribute('src', '');
+	if ( this.cur < 0 || this.cur > len - 1) {	//判断是否为第一张
+		clearTimeout(this.timer);
+		this.oImg.setAttribute('src', imgSrc);
+	} else {
+		this.timer = setTimeout(function() {
+			_this.oImg.setAttribute('src', imgSrc);
+		}, 500);
+	}
+	
+	// this.frameResize();
 };
 
+PowerPoint.prototype.tabImg = function(n) {		//切换图片
+	this.loadImg(this.key, this.cur + n);
+};	
+
 PowerPoint.prototype.hideFrame = function() {		//关闭详情图片
-	this.oFrame.style.display = 'none';
-	this.oScreen.style.display = 'none';
+	this.oScreen.classList.remove('show_screen');
+	this.oFrame.classList.remove('show_frame');
 	document.body.style.overflow = 'auto';
 };
 
 PowerPoint.prototype.showFrame = function() {		//关闭详情图片
-	this.oFrame.style.display = 'block';
-	this.oScreen.style.display = 'block';
+	this.oScreen.classList.add('show_screen');
+	this.oFrame.classList.add('show_frame');
 	document.body.style.overflow = 'hidden';
 };
 
-PowerPoint.prototype.frameResize = function (newWidth, newHeight) {
-	this.oFrame.style.width = newWidth + 'px';
-	this.oFrame.style.height = newHeight + 'px';
+PowerPoint.prototype.frameResize = function () {
+	var imgW = this.oImg.offsetWidth,
+		imgH = this.oImg.offsetHeight,
+		viewportW = window.innerWidth * 0.9,
+		viewportH = window.innerHeight * 0.8;
+	
+	if (imgW <= viewportW && imgH <= viewportH) {
+		this.oImg.style.width = imgW + 'px';
+		this.oImg.style.height = imgH + 'px';
+	}
+
+	if (imgW >= viewportW && imgH <= viewportH) {
+		this.oImg.style.width = viewportW + 'px';
+	}
+
+	if (imgW <= viewportW && imgH >= viewportH) {
+		this.oImg.style.height = viewportH + 'px';
+	}
+
+	if (imgW >= viewportW && imgH >= viewportH) {
+		var scaleW = imgW / viewportW,
+			scaleH = imgH / viewportH;
+		if (scaleW > scaleH) {
+			this.oImg.style.height = viewportH + 'px';	
+		} else {
+			this.oImg.style.width = viewportW + 'px';
+		}
+	}
 };
 
 function getStyle( obj,attr ){	
