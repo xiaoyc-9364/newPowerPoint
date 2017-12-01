@@ -63,7 +63,7 @@
 	border-radius: 5px;
 	display: none;
 	margin-bottom: 50px;
-	transition: all 0.5;
+	/*transition: all 0.5;*/
 }
 .frame_img{
 	display: block;
@@ -75,7 +75,7 @@
 .frame_hide{
 	display: block;
 	line-height: 0.6em;
-	font-size: 5em;
+	font-size: 4em;
 	border: none;
 	text-shadow: 0 0 3px #fff;
 	color: #fff;
@@ -103,7 +103,7 @@
 	left: 0;
 	bottom: -45px;
 }
-.frame_ctrl_btn {
+.frame_btn {
 	height: 100%;
 	width: 80px;
 	position: absolute;
@@ -127,6 +127,9 @@
 .frame_next {
 	right: 0;
 }
-.frame_ctrl_btn:hover {
+.frame_btn:hover {
 	opacity: .8;
+}
+.hide_btn {
+	display: none;
 }
