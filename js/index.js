@@ -1,218 +1,289 @@
-window.addEventListener('load', function() {
-	addImgSlide();
-}, false);
-
-function addImgSlide() {
-	var allImg = document.getElementsByTagName('img');	//获取页面中所有img
-	var len = allImg.length;
-	var imgGroup = {};
-	var frame = null;
-	for (var i = 0; i < len; i++) {	
-		var aImg = allImg[i];	
-		var imgData = aImg.getAttribute('data-imggroup');
-		if (imgData) {					//判断是否有'data-imggroup'属性
-			if (!imgGroup[imgData]) {		//判断json中是否有与'data-imggroup'值相同的属性
-				imgGroup[imgData] = [aImg];		//没有则在json中添加一个'data-imggroup'值为名称的数组
-				imgGroup[imgData].push();	//并将该img添加到数组中
-			} else {
-				imgGroup[imgData].push(aImg);	//如果有'data-imggroup'值相同的属性，将该图片添加到数组中
-			}
-		}
-	}
-	return new PowerPoint(imgGroup);
-}
-
-function PowerPoint(opts) {		//参数：拥有不用图片元素数组的对象
-	this.options = opts;
-	this.init();
-};
-
-PowerPoint.prototype.init = function() {
-	this.createFrame();
-	this.addEvent();
-};
-
-PowerPoint.prototype.createFrame = function() {	//创建图片详情方法
-	this.oScreen = document.createElement('div');	//创建屏幕遮罩
-	this.oScreen.setAttribute('class', 'frame_screen');	//设置class，用于css
-
-	this.oFrame = document.createElement('div');	//创建显示框
-	this.oFrame.setAttribute('class', 'frame_detail');
-
-	this.oEmpty = document.createElement('div');	//创建一个空元素，用于撑起frame高度
-	this.oEmpty.setAttribute('class', 'frame_empty');
-	this.oFrame.appendChild(this.oEmpty);
-
-	this.oImg = new Image();	
-	this.oImg.setAttribute('class', 'frame_img');
-	this.oFrame.appendChild(this.oImg);
-
-	this.oPrev = document.createElement('button');	//创建上一张及下一张按钮
-	this.oPrev.setAttribute('class', 'frame_btn frame_prev');
-	this.oPrev.innerHTML = '<';	
-	this.oFrame.appendChild(this.oPrev);
-
-	this.oNext = document.createElement('button');
-	this.oNext.setAttribute('class', 'frame_btn frame_next');
-	this.oNext.innerHTML = '>';	
-	this.oFrame.appendChild(this.oNext);
-
-	this.oClose = document.createElement('button');		//创建关闭按钮
-	this.oClose.setAttribute('class', 'frame_hide');
-	this.oClose.innerHTML = '×';
-	this.oFrame.appendChild(this.oClose);
-
-	this.pageNum = document.createElement('p');		//页码信息
-	this.pageNum.setAttribute('class', 'frame_pagenum');
-	this.oFrame.appendChild(this.pageNum);
-
-	this.imgMessage = document.createElement('p');	//图片描述信息
-	this.imgMessage.setAttribute('class', 'frame_message');
-	this.oFrame.appendChild(this.imgMessage);
-
-	document.body.appendChild(this.oFrame);			//将显示框添加到body
-	document.body.appendChild(this.oScreen);		//屏幕遮罩添加到body
-};
-
-PowerPoint.prototype.addEvent = function() {
-	var _this = this;
-	for (var k in _this.options) {	//遍历对象
-		(function(k) {
-			var len = _this.options[k].length;	//对象k属性的数组长度
-				for(var i = 0; i < len; i++) {
-					(function(i) {
-						_this.options[k][i].addEventListener('click', function() {	//点击图片
-							_this.showFrame();	//创建详情
-							_this.loadImg(k, i);
-						}, false);
-					})(i);
+;(function($) {
+	$.fn.picSlide = function() {
+		var imgGroup = {};
+		this.find('img').each(function(){
+			var $this = $(this);
+			var imgData = $this.data('imggroup');	
+			if (imgData) {							//判断是否存在data-imggroup属性
+				if (!imgGroup[imgData]) {			//判断imggroup中是否有该属性
+					imgGroup[imgData] = [$this];	//如果没有则添加属性，并将该img添加到数组中
+				} else {
+					imgGroup[imgData].push($this);	//如果存在直接添加
 				}
-		})(k);
+			}
+		});
+
+		return new Frame(imgGroup);
+	};
+
+	function Frame(opts) {
+		this.info = opts; 
+		this.init();
 	}
 
-	document.addEventListener('keydown', function(event) {	
-		switch(event.keyCode) {		//按下键盘Esc键，关闭详图
-			case 27:
+	Frame.prototype = {
+		init: function() {
+			this.createFrame();	//创建节点
+			this.addEvent();	//绑定事件
+		},
+
+		createFrame: function() {	//创建节点方法
+			var $body = $('body');
+			this.oScreen = $('<div></div>').css({	//创建屏幕遮罩，并设置样式
+								position: 'fixed',
+								left: 0,
+								top:0,
+								zIndex: 990 ,
+								width: '100%' ,
+								height:'100%' ,
+								background: '#000',
+								opacity: 0.4
+							}).appendTo($body).hide();
+
+			this.oFrame = $('<div></div>').css({	//创建容器
+								position: 'fixed',
+								left: '50%',
+								top: '50%',
+								color: '#fff',
+								transform: 'translate(-50%, -50%)',
+								zIndex: 991,
+								background: '#fff url(image/5-121204193R0.gif) center center no-repeat',
+								padding: '5px',
+								borderRadius: '5px',
+								marginBottom: '50px'
+							}).hide();
+
+			var $frameContainer = this.oFrame;
+
+			$('<img/>').css({		//创建img
+					display: 'block',
+					borderRadius: "5px"
+				}).appendTo($frameContainer);
+
+			var $oPrev = $('<button>&lt;</button>').css({	//创建上一张按钮
+							height: '100%',
+							width: '80px',
+							lineHeight: '100%',
+							textAlign: 'center',
+							position: 'absolute',
+							top: 0,
+							left: 0,
+							border: 'none',
+							cursor: 'pointer',
+							outline: 'none',
+							color: '#fff',
+							background: 'transparent',
+							WebkitFontSmoothing: 'antialiased',
+							fontSize: '40px',
+							textShadow: '0  0 5px #000',
+							transition: 'all 0.5s',
+							opacity: 0.6,
+							zIndex: 999
+						}).appendTo($frameContainer);
+
+			var $oNext = $oPrev.clone(true).html('&gt;').css({	//下一张按钮
+							right:0,
+							left: 'auto'
+						}).appendTo($frameContainer);
+
+		
+
+			$('<a href="javascript:void(0);">×</a>').css({		//关闭按钮
+					display: 'block',
+					lineHeight: '40px',
+					fontSize: '3em',
+					textDecoration: 'none',
+					textShadow: '0 0 3px #fff',
+					color: '#fff',
+					background: 'transparent',
+					position: 'absolute',
+					right: 0,
+					transform: 'translateY(100%)',
+					bottom: 0,
+					outline: 'none',
+					userSelect: 'none',
+					zIndex: 999,
+				}).appendTo($frameContainer);
+
+			this.imgMessage = $('<p>cc</p>').css({		//图片描述文本
+					lineHeight: '14px',
+					fontSize: '16px',
+					position: 'absolute',
+					left: 0,
+					bottom: '-20px',
+					textIndent: '1em'
+				}).appendTo($frameContainer);
+
+			this.pageNum = $('<p>fff</p>').css({	//页码
+					lineHeight: '14px',
+					fontSize: '16px',
+					position: 'absolute',
+					left: 0,
+					bottom: '-45px',
+					textIndent: '1em'
+				}).appendTo($frameContainer);
+
+			this.oFrame.appendTo($body);
+		},
+
+		addEvent: function() {		//事件绑定方法
+			var _this = this;
+			$.each(_this.info, function(key, value) {
+				$(value).each(function(index) {
+					$(this).click(function() {		//图片点击事件
+						_this.showFrame();			//显示幻灯
+						_this.loadImage(key, index);//加载图片
+					});
+				});
+			});
+
+			this.oFrame.find('a').click(function() {	//关闭按钮隐藏幻灯
+				_this.hideFrame();	
+			});
+
+			this.oScreen.click(function() {		//点击幻灯外围隐藏幻灯
 				_this.hideFrame();
-				break;
-			case 37: 				//左方向键上一张
-				_this.tabImg(-1);
-				break;
-			case 39: 				//有方向键下一张
-				_this.tabImg(1);
-				break;
-			case 32: 				//有空格键下一张
-				_this.tabImg(1);
-				break;
+			});
+
+			var $btn = this.oFrame.find('button');
+			$btn.hover(function() {		//鼠标悬浮事件
+				$(this).css({
+					opacity: 1
+				});
+			}, function() {
+				$(this).css({
+					opacity: 0.3
+				});
+			});
+
+			$btn.eq(0).click(function() {	//上一张按钮
+				_this.tabImage(-1);
+			});
+			$btn.eq(1).click(function(e) {	//下一张按钮
+				_this.tabImage(1);
+			});
+
+			$(document).keydown(function(e) {
+				switch(e.which) {		//按下键盘Esc键，关闭详图
+					case 27:
+						_this.hideFrame();
+						break;
+					case 37: 				//左方向键上一张
+						_this.tabImage(-1);
+						break;
+					case 39: 				//有方向键下一张
+						_this.tabImage(1);
+						break;
+					case 32: 				//有空格键下一张
+						_this.tabImage(1);
+						break;
+				}
+			});
+			
+			$(window).resize(function() {	//浏览器缩放
+				if (_this.oFrame.css('display') !== 'none') {
+					_this.resize();
+				}
+				
+			});
+		
+			
+		},
+
+		loadImage: function(property, index) {	
+			//加载图片方法，参数：当前的info的属性； 该属性下的索引；
+			this.key = property;
+			this.cur = index;
+			var _this = this;
+			var $curImage = $(this.info[property][index]);	//当前图片
+			var len = $(this.info[property]).length;
+			var aBtn = this.oFrame.find('button');
+
+			if (this.cur <= 0) {	//当前图片为第一张是隐藏上一张按钮
+				this.cur = 0;
+				aBtn.eq(0).fadeOut('fast');
+				aBtn.eq(1).fadeIn();	//防止点击最后一张图片后退出，再点击第一张时按隐藏
+			} else if (this.cur >= len-1) {
+				this.cur = len-1;
+				aBtn.eq(0).fadeIn();
+				aBtn.eq(1).fadeOut('fast');
+			} else {
+				aBtn.fadeIn();
+			}
+			if (len == 1) {		//图片组只有一张时隐藏按钮
+				aBtn.fadeOut('fast');
+			}
+			var imgSrc = $curImage.attr('src'),  //获取当前图片的src
+				imgAlt = $curImage.attr('alt');	 //获取当前图片的alt
+			
+			var newImage = new Image();			//新的图片对象
+			$(newImage).attr('src', imgSrc);
+			var a = document.documentElement.clientWidth,
+				b = document.documentElement.clientHeight;
+			var viewportW = a * 0.9,		//视口宽度的90%
+				viewportH = b * 0.8,	//视口高度的80%
+				realWidth = newImage.width,		//图片的原始宽度
+				realHeight = newImage.height,	//图片的原始高度
+				scaleW = viewportW / realWidth,	//高度及宽度的缩放比例
+				scaleH = viewportH / realHeight;
+			
+			var imgW, imgH;
+			//连个比例都大于1时则说明图片的原始高度及宽度小于视口高度宽度
+			if (scaleW >= 1 && scaleH >= 1) {
+				imgW = realWidth;
+				imgH = realHeight;
+				console.log('1');
+			} else {
+			//当高度或宽度有一个大于视口的宽高时，比较高度及宽度是缩放比
+			//宽度的缩放比大于高度的缩放比，说明高度的缩放量更大，则将图片的高度设置为视口高度
+			//宽度按高度的缩放比缩放	
+				if (scaleW > scaleH) {
+					imgH = viewportH;
+					imgW = realWidth * imgH / realHeight;
+				console.log('2');
+				} else{
+					imgW = viewportW;
+					imgH = viewportH * imgW / realWidth;
+					// debugger;
+				console.log('3');
+				} 
+			}
+			_this.oFrame.find('img').attr('src', imgSrc).css({
+				opacity: 0
+			}).animate({
+				width: imgW,
+				height: imgH,
+				opacity: 1
+			},800);
+			
+
+			this.imgMessage.html(imgAlt);
+			this.pageNum.html(this.cur + 1 + " / " + len);
+		},
+
+		tabImage: function(n) {
+			this.loadImage(this.key, this.cur + n);
+		},
+
+		showFrame: function() {
+			this.oScreen.fadeIn('slow');
+			this.oFrame.fadeIn('slow');
+			$('body').css('overflow', 'hidden');
+		},
+
+		hideFrame: function() {
+			this.oScreen.fadeOut('slow');
+			this.oFrame.fadeOut('slow');
+			$('body').css('overflow', 'auto');
+		},
+
+		resize: function() {
+			this.loadImage(this.key, this.cur);
 		}
-	},false);
-
-	_this.oPrev.addEventListener('click', function() {	//上一张
-		_this.tabImg(-1);
-	}, false);
-	_this.oNext.addEventListener('click', function() {	//下一张
-		_this.tabImg(1);				
-	}, false);
-
-	_this.oScreen.addEventListener('click', function() { //关闭按钮
-		_this.hideFrame();
-	}, false);
-
-	_this.oClose.addEventListener('click', function() {	//关闭按钮
-		_this.hideFrame();
-	}, false);
-};
-
-PowerPoint.prototype.loadImg = function(property, index) {  //加载图片
-	this.key = property;
-	this.cur = index;
-	var len = this.options[property].length;
-	if ( this.cur <= 0) {	//判断是否为第一张
-		this.cur = 0;	
-		this.oPrev.classList.add('hide_btn');	 	//隐藏上一张按钮
-		this.oNext.classList.remove('hide_btn'); 	//显示下一张按钮
-	} else if (this.cur >= len - 1) {
-		this.cur = len - 1;
-		this.oPrev.classList.remove('hide_btn');	//显示上一张按钮
-		this.oNext.classList.add('hide_btn');   	//隐藏下一张按钮
-	} else {
-		this.oPrev.classList.remove('hide_btn');
-		this.oNext.classList.remove('hide_btn');
 	}
+})(jQuery);
 
-	var imgSrc = this.options[this.key][this.cur].getAttribute('src');
-	var imgAlt = this.options[this.key][this.cur].getAttribute('alt');
+$(document).ready(function(){
+	$('.imgmain').picSlide();
+});
 
-	this.oImg.setAttribute('src', imgSrc);
-	this.imgMessage.innerHTML = imgAlt;						//图片信息添加内容
-	this.pageNum.innerHTML = (this.cur + 1) + " / " +  len;			//页码
-	var _this =  this;
-
-	this.oImg.addEventListener('load', function() {}, false);
-	var imgW = this.oImg.offsetWidth,
-		imgH = this.oImg.offsetHeight;
-	this.oEmpty.style.width = imgW + 'px';
-	this.oEmpty.style.height = imgH + 'px';
-
-	this.oImg.setAttribute('src', '');
-	if ( this.cur < 0 || this.cur > len - 1) {	//判断是否为第一张
-		clearTimeout(this.timer);
-		this.oImg.setAttribute('src', imgSrc);
-	} else {
-		this.timer = setTimeout(function() {
-			_this.oImg.setAttribute('src', imgSrc);
-		}, 500);
-	}
-	
-	// this.frameResize();
-};
-
-PowerPoint.prototype.tabImg = function(n) {		//切换图片
-	this.loadImg(this.key, this.cur + n);
-};	
-
-PowerPoint.prototype.hideFrame = function() {		//关闭详情图片
-	this.oScreen.classList.remove('show_screen');
-	this.oFrame.classList.remove('show_frame');
-	document.body.style.overflow = 'auto';
-};
-
-PowerPoint.prototype.showFrame = function() {		//关闭详情图片
-	this.oScreen.classList.add('show_screen');
-	this.oFrame.classList.add('show_frame');
-	document.body.style.overflow = 'hidden';
-};
-
-PowerPoint.prototype.frameResize = function () {
-	var imgW = this.oImg.offsetWidth,
-		imgH = this.oImg.offsetHeight,
-		viewportW = window.innerWidth * 0.9,
-		viewportH = window.innerHeight * 0.8;
-	
-	if (imgW <= viewportW && imgH <= viewportH) {
-		this.oImg.style.width = imgW + 'px';
-		this.oImg.style.height = imgH + 'px';
-	}
-
-	if (imgW >= viewportW && imgH <= viewportH) {
-		this.oImg.style.width = viewportW + 'px';
-	}
-
-	if (imgW <= viewportW && imgH >= viewportH) {
-		this.oImg.style.height = viewportH + 'px';
-	}
-
-	if (imgW >= viewportW && imgH >= viewportH) {
-		var scaleW = imgW / viewportW,
-			scaleH = imgH / viewportH;
-		if (scaleW > scaleH) {
-			this.oImg.style.height = viewportH + 'px';	
-		} else {
-			this.oImg.style.width = viewportW + 'px';
-		}
-	}
-};
-
-function getStyle( obj,attr ){	
-	return obj.currentStyle ? obj.currentStyle[attr]:getComputedStyle(obj)[attr];
-}

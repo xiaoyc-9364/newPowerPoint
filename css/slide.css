@@ -1,0 +1,160 @@
+
+.wrapper{
+	width: 80%;
+	/*height: 100dpx;*/
+	margin: 0 auto;
+	border: 1px solid #000;
+	position: relative;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	z-index: 5;
+}
+.imgmain{
+	width: 60%;
+	padding-top: 50px;
+/*	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);*/
+	/*bottom: 40px;*/
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	
+}
+.imgmain img {
+	width: 100px;
+	border-radius: 6px;
+	cursor: pointer;
+	border: 4px solid transparent;
+	transition: all 0.5s;
+}
+.imgmain img:hover {
+	border-color: #075fb9;
+}
+/*js添加的class元素的样式*/
+.frame_screen {
+	width: 100%;
+	height: 100%;
+	background: #000;
+	opacity: 0;
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1;
+	color: #fff;
+	/*display: none;*/
+	transition: all 0.5s;
+}
+.frame_detail {
+	max-height: 80%;
+	max-width: 90%;
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	color: #fff;
+	transform: translate(-50%, -50%);
+	z-index: 1;
+	background: #fff url(../image/5-121204193R0.gif) center center no-repeat;
+	padding: 5px;
+	border-radius: 5px;
+	/*display: none;*/
+	margin-bottom: 50px;
+	opacity: 0;
+	animation: changeSize 500ms;
+}
+.frame_empty {
+	position: relative;
+	left: 0;
+	top: 0;
+	z-index: 992;
+}
+.frame_img{
+	display: block;
+	border-radius: 5px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 995;
+}
+.frame_hide{
+	display: block;
+	line-height: 0.6em;
+	font-size: 4em;
+	border: none;
+	text-shadow: 0 0 3px #fff;
+	color: #fff;
+	background: transparent;
+	position: absolute;
+	right: 0;
+	transform: translateY(100%);
+	bottom: 0;
+	cursor: pointer;
+	outline: none;
+	user-select: none;
+	z-index: 999;
+}
+.frame_message {
+	line-height: 14px;
+	font-size: 16px;
+	position: absolute;
+	left: 0;
+	bottom: -20px;
+}
+.frame_pagenum {
+	line-height: 14px;
+	font-size: 16px;
+	position: absolute;
+	left: 0;
+	bottom: -45px;
+}
+.frame_btn {
+	height: 100%;
+	width: 80px;
+	position: absolute;
+	top: 50%;
+	transform: translate(0, -50%);
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	outline: none;
+	color: #fff;
+	font-size: 40px;
+	text-shadow: 0  0 5px #000;
+	opacity: 0;
+	transition: all 0.5s;
+	z-index: 999;
+}
+.frame_prev {
+	left: 0;
+	text-align: center;
+}
+.frame_next {
+	right: 0;
+}
+.frame_btn:hover {
+	opacity: .8;
+}
+.hide_btn {
+	display: none;
+}
+.show_screen{
+	opacity: 0.5;
+	z-index: 990;
+	/*display: block;*/
+}
+.show_frame{
+	opacity: 1;
+	z-index: 991;
+	/*display: block;*/
+}
+/*动画帧*/
+@keyframes changeSize {
+	
+}
