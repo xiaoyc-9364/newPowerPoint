@@ -182,13 +182,10 @@
 			
 			$(window).resize(function() {	//浏览器缩放
 				if (_this.oFrame.css('display') !== 'none') {
-					console.log($(window).width());
 					_this.loadImage(_this.key, _this.cur);
 				}
 				
 			});
-		
-			
 		},
 
 		loadImage: function(property, index) {	
@@ -232,34 +229,14 @@
 				
 			var scale = Math.min(scaleW, scaleH, 1);
 			var imgW, imgH;
-			//连个比例都大于1时则说明图片的原始高度及宽度小于视口高度宽度
-			// if (scaleW >= 1 && scaleH >= 1) {
-			// 	imgW = realWidth;
-			// 	imgH = realHeight;
-			// 	console.log('1');
-			// } else {
-			// //当高度或宽度有一个大于视口的宽高时，比较高度及宽度是缩放比
-			// //宽度的缩放比大于高度的缩放比，说明高度的缩放量更大，则将图片的高度设置为视口高度
-			// //宽度按高度的缩放比缩放	
-			// 	if (scaleW > scaleH) {
-			// 		imgH = viewportH;
-			// 		imgW = realWidth * scaleH;
-			// 	console.log('2');
-			// 	} else {
-			// 		imgW = viewportW;
-			// 		imgH = viewportH * scaleW;
-			// 		// debugger;
-			// 	console.log('3');
-			// 	} 
-			// }
+
 			imgH = realHeight * scale;
 			imgW = realWidth * scale;
-			_this.oFrame.find('img').attr('src', imgSrc).css({
+			_this.oFrame.find('img').stop().attr('src', imgSrc).css({
 				opacity: 0
 			}).animate({
 				width: imgW,
-				height: imgH,
-				// opacity: 1
+				height: imgH
 			},300).animate({
 				opacity: 1
 			}, 600);
