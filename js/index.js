@@ -182,12 +182,10 @@
 			
 			$(window).resize(function() {	//浏览器缩放
 				if (_this.oFrame.css('display') !== 'none') {
-					_this.resize();
+					_this.loadImage(_this.key, _this.cur);
 				}
 				
 			});
-		
-			
 		},
 
 		loadImage: function(property, index) {	
@@ -195,66 +193,53 @@
 			this.key = property;
 			this.cur = index;
 			var _this = this;
-			var $curImage = $(this.info[property][index]);	//当前图片
 			var len = $(this.info[property]).length;
 			var aBtn = this.oFrame.find('button');
 
-			if (this.cur <= 0) {	//当前图片为第一张是隐藏上一张按钮
-				this.cur = 0;
+			if (this.cur < 0) {	//当前图片为第一张是隐藏上一张按钮
+				
 				aBtn.eq(0).fadeOut('fast');
 				aBtn.eq(1).fadeIn();	//防止点击最后一张图片后退出，再点击第一张时按隐藏
-			} else if (this.cur >= len-1) {
+				this.cur = 0;
+				return false;
+			} else if (this.cur > len-1) {
 				this.cur = len-1;
 				aBtn.eq(0).fadeIn();
 				aBtn.eq(1).fadeOut('fast');
+				return false;
 			} else {
 				aBtn.fadeIn();
 			}
 			if (len == 1) {		//图片组只有一张时隐藏按钮
 				aBtn.fadeOut('fast');
 			}
+			var $curImage = $(this.info[this.key][this.cur]);	//当前图片
 			var imgSrc = $curImage.attr('src'),  //获取当前图片的src
 				imgAlt = $curImage.attr('alt');	 //获取当前图片的alt
-			
+		
 			var newImage = new Image();			//新的图片对象
-			$(newImage).attr('src', imgSrc);
-			var a = document.documentElement.clientWidth,
-				b = document.documentElement.clientHeight;
-			var viewportW = a * 0.9,		//视口宽度的90%
-				viewportH = b * 0.8,	//视口高度的80%
+			newImage.src = imgSrc
+		
+			var viewportW = $(window).width() * 0.9,		//视口宽度的90%
+				viewportH = $(window).height() * 0.8,	//视口高度的80%
 				realWidth = newImage.width,		//图片的原始宽度
 				realHeight = newImage.height,	//图片的原始高度
 				scaleW = viewportW / realWidth,	//高度及宽度的缩放比例
 				scaleH = viewportH / realHeight;
-			
+				
+			var scale = Math.min(scaleW, scaleH, 1);
 			var imgW, imgH;
-			//连个比例都大于1时则说明图片的原始高度及宽度小于视口高度宽度
-			if (scaleW >= 1 && scaleH >= 1) {
-				imgW = realWidth;
-				imgH = realHeight;
-				console.log('1');
-			} else {
-			//当高度或宽度有一个大于视口的宽高时，比较高度及宽度是缩放比
-			//宽度的缩放比大于高度的缩放比，说明高度的缩放量更大，则将图片的高度设置为视口高度
-			//宽度按高度的缩放比缩放	
-				if (scaleW > scaleH) {
-					imgH = viewportH;
-					imgW = realWidth * imgH / realHeight;
-				console.log('2');
-				} else{
-					imgW = viewportW;
-					imgH = viewportH * imgW / realWidth;
-					// debugger;
-				console.log('3');
-				} 
-			}
-			_this.oFrame.find('img').attr('src', imgSrc).css({
+
+			imgH = realHeight * scale;
+			imgW = realWidth * scale;
+			_this.oFrame.find('img').stop().attr('src', imgSrc).css({
 				opacity: 0
 			}).animate({
 				width: imgW,
-				height: imgH,
+				height: imgH
+			},300).animate({
 				opacity: 1
-			},800);
+			}, 600);
 			
 
 			this.imgMessage.html(imgAlt);
